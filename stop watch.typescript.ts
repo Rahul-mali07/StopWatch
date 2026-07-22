@@ -1,9 +1,3 @@
-/**
- * Stopwatch Application - TypeScript Version
- * Complete working stopwatch with lap functionality
- */
-
-// Type definitions
 interface StopwatchState {
     startTime: number;
     elapsedTime: number;
