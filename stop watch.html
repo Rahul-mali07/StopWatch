@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>⏱️ Stopwatch</title>
+    <style>
+        /* ----------------------------------------------
+           GLOBAL RESET & BASE
+           ---------------------------------------------- */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0b0e14;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #f0f4fa;
+            padding: 20px;
+        }
+
+        /* ----------------------------------------------
+           APP CONTAINER
+           ---------------------------------------------- */
+        .app {
+            background: #151e2a;
+            border-radius: 48px;
+            padding: 48px 56px 40px;
+            max-width: 620px;
+            width: 100%;
+            box-shadow:
+                0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                inset 0 1px 2px rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        /* ----------------------------------------------
+           TITLE
+           ---------------------------------------------- */
+        .title {
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #7b8ba3;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        /* ----------------------------------------------
+           DISPLAY
+           ---------------------------------------------- */
+        .display {
+            font-size: 80px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
+            text-align: center;
+            padding: 20px 0 12px;
+            background: #0f1722;
+            border-radius: 32px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: inset 0 8px 16px rgba(0, 0, 0, 0.4);
+            color: #e8edf5;
+            text-shadow: 0 0 40px rgba(100, 180, 255, 0.06);
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        .display .milliseconds {
+            font-size: 36px;
+            color: #7b8ba3;
+            font-weight: 400;
+        }
+
+        .display .separator {
+            color: #3a4a5e;
+            margin: 0 2px;
+        }
+
+        /* ----------------------------------------------
+           CONTROLS
+           ---------------------------------------------- */
+        .controls {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 0 1 auto;
+            min-width: 100px;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 60px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #1e2a3a;
+            color: #b0c4dd;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            letter-spacing: 0.3px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-start {
+            background: #0f7b3a;
+            color: #d4f5e0;
+            box-shadow: 0 4px 16px rgba(15, 123, 58, 0.35);
+        }
+        .btn-start:hover:not(:disabled) {
+            background: #129447;
+            box-shadow: 0 8px 28px rgba(15, 123, 58, 0.5);
+        }
+
+        .btn-stop {
+            background: #b13a3a;
+            color: #fdd4d4;
+            box-shadow: 0 4px 16px rgba(177, 58, 58, 0.35);
+        }
+        .btn-stop:hover:not(:disabled) {
+            background: #c94444;
+            box-shadow: 0 8px 28px rgba(177, 58, 58, 0.5);
+        }
+
+        .btn-reset {
+            background: #2a3a4a;
+            color: #b0c4dd;
+        }
+        .btn-reset:hover:not(:disabled) {
+            background: #364a5e;
+        }
+
+        .btn-lap {
+            background: #1f3a5a;
+            color: #8bb8e8;
+        }
+        .btn-lap:hover:not(:disabled) {
+            background: #2a4a70;
+        }
+
+        .btn-icon {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        /* ----------------------------------------------
+           LAP TIMES
+           ---------------------------------------------- */
+        .laps-section {
+            margin-top: 8px;
+        }
+
+        .laps-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 4px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 13px;
+            font-weight: 500;
+            color: #6a7e98;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .laps-header .count {
+            background: #1e2a3a;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 12px;
+            color: #8ba0ba;
+        }
+
+        .laps-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 240px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #2a3a4a transparent;
+        }
+
+        .laps-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .laps-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .laps-list::-webkit-scrollbar-thumb {
+            background: #2a3a4a;
+            border-radius: 4px;
+        }
+
+        .lap-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 4px 10px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-size: 18px;
+            font-weight: 450;
+            font-variant-numeric: tabular-nums;
+            color: #d0dcec;
+            transition: background 0.1s ease;
+        }
+
+        .lap-item:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .lap-item .lap-number {
+            font-size: 14px;
+            font-weight: 500;
+            color: #5a6e88;
+            min-width: 44px;
+        }
+
+        .lap-item .lap-time {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .lap-item .lap-delta {
+            font-size: 14px;
+            color: #4a5e78;
+            font-weight: 400;
+            margin-left: 16px;
+        }
+
+        .lap-item:last-child {
+            border-bottom: none;
+        }
+
+        .no-laps {
+            text-align: center;
+            padding: 36px 0 24px;
+            color: #3a4e68;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .no-laps span {
+            display: block;
+            font-size: 32px;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        /* ----------------------------------------------
+           RESPONSIVE
+           ---------------------------------------------- */
+        @media (max-width: 520px) {
+            .app {
+                padding: 28px 20px 24px;
+                border-radius: 32px;
+            }
+
+            .display {
+                font-size: 52px;
+                padding: 16px 0 10px;
+            }
+            .display .milliseconds {
+                font-size: 24px;
+            }
+
+            .btn {
+                min-width: 72px;
+                padding: 12px 18px;
+                font-size: 14px;
+                flex: 1;
+            }
+
+            .controls {
+                gap: 10px;
+            }
+
+            .lap-item {
+                font-size: 16px;
+                padding: 8px 2px 8px 6px;
+            }
+            .lap-item .lap-time {
+                font-size: 17px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .display {
+                font-size: 40px;
+            }
+            .display .milliseconds {
+                font-size: 18px;
+            }
+            .btn {
+                font-size: 12px;
+                padding: 10px 12px;
+                min-width: 56px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <!-- ----------------------------------------------
+    REACT + REACT-DOM (CDN)
+    ---------------------------------------------- -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js">
+    </script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js">
+    </script>
+
+    <!-- ----------------------------------------------
+    BABEL (for JSX)
+    ---------------------------------------------- -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js">
+    </script>
+
+    <!-- ----------------------------------------------
+    MAIN APP (JSX)
+    ---------------------------------------------- -->
+    <script type="text/babel">
+        // ───────────────────────────────────────────────
+        //  HELPERS
+        // ───────────────────────────────────────────────
+
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+            const seconds = String(totalSeconds % 60).padStart(2, '0');
+            const milliseconds = String(Math.floor((ms % 1000) / 10)).padStart(2, '0');
+            return { minutes, seconds, milliseconds };
+        }
+
+        function formatDisplay(ms) {
+            const { minutes, seconds, milliseconds } = formatTime(ms);
+            return `${minutes}:${seconds}.${milliseconds}`;
+        }
+
+        function formatLapTime(ms) {
+            const { minutes, seconds, milliseconds } = formatTime(ms);
+            return `${minutes}:${seconds}.${milliseconds}`;
+        }
+
+        // ───────────────────────────────────────────────
+        //  MAIN APP COMPONENT
+        // ───────────────────────────────────────────────
+
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        function App() {
+            // ---- state ----
+            const [time, setTime] = useState(0); // elapsed ms
+            const [isRunning, setIsRunning] = useState(false);
+            const [laps, setLaps] = useState([]);
+            const [lastLapTime, setLastLapTime] = useState(0);
+
+            // ---- refs ----
+            const intervalRef = useRef(null);
+            const startTimeRef = useRef(0);
+            const elapsedBeforeStartRef = useRef(0);
+
+            // ---- derived ----
+            const display = formatDisplay(time);
+            const [displayMinutes, displaySeconds, displayMs] = display.split(/[:.]/);
+
+            // ---- effects ----
+            useEffect(() => {
+                return () => {
+                    if (intervalRef.current) clearInterval(intervalRef.current);
+                };
+            }, []);
+
+            // ---- handlers ----
+            const handleStart = useCallback(() => {
+                if (isRunning) return;
+                startTimeRef.current = performance.now();
+                elapsedBeforeStartRef.current = time;
+                setIsRunning(true);
+                intervalRef.current = setInterval(() => {
+                    const now = performance.now();
+                    const elapsed = elapsedBeforeStartRef.current + (now - startTimeRef.current);
+                    setTime(elapsed);
+                }, 10);
+            }, [isRunning, time]);
+
+            const handleStop = useCallback(() => {
+                if (!isRunning) return;
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+                setIsRunning(false);
+                // freeze the final time
+            }, [isRunning]);
+
+            const handleReset = useCallback(() => {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+                setIsRunning(false);
+                setTime(0);
+                setLaps([]);
+                setLastLapTime(0);
+                startTimeRef.current = 0;
+                elapsedBeforeStartRef.current = 0;
+            }, []);
+
+            const handleLap = useCallback(() => {
+                if (!isRunning) return;
+                // current total time
+                const currentTime = time;
+                const lapDuration = currentTime - lastLapTime;
+                setLaps((prev) => [...prev, { index: prev.length + 1, total: currentTime, lap: lapDuration }]);
+                setLastLapTime(currentTime);
+            }, [isRunning, time, lastLapTime]);
+
+            // ---- render ----
+            return (
+                <div className="app">
+                    <div className="title">⏱️ Stopwatch</div>
+
+                    {/* DISPLAY */}
+                    <div className="display">
+                        <span>{displayMinutes}</span>
+                        <span className="separator">:</span>
+                        <span>{displaySeconds}</span>
+                        <span className="separator">.</span>
+                        <span className="milliseconds">{displayMs}</span>
+                    </div>
+
+                    {/* CONTROLS */}
+                    <div className="controls">
+                        {!isRunning ? (
+                            <button className="btn btn-start" onClick={handleStart} disabled={time === 0 && laps.length >
+                                0}>
+                                <span className="btn-icon">▶</span> Start
+                            </button>
+                        ) : (
+                            <button className="btn btn-stop" onClick={handleStop}>
+                                <span className="btn-icon">⏸</span> Stop
+                            </button>
+                        )}
+
+                        <button className="btn btn-lap" onClick={handleLap} disabled={!isRunning}>
+                            <span className="btn-icon">⏱</span> Lap
+                        </button>
+
+                        <button className="btn btn-reset" onClick={handleReset} disabled={time === 0 && laps.length === 0}>
+                            <span className="btn-icon">⟳</span> Reset
+                        </button>
+                    </div>
+
+                    {/* LAPS */}
+                    <div className="laps-section">
+                        <div className="laps-header">
+                            <span>Laps</span>
+                            <span className="count">{laps.length}</span>
+                        </div>
+
+                        {laps.length === 0 ? (
+                            <div className="no-laps">
+                                <span>⏳</span>
+                                No laps recorded yet
+                            </div>
+                        ) : (
+                            <ul className="laps-list">
+                                {laps.map((lap, idx) => {
+                                    const isLast = idx === laps.length - 1;
+                                    return (
+                                        <li key={lap.index} className="lap-item" style={{
+                                            borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.03)'
+                                        }}>
+                                            <span className="lap-number">#{lap.index}</span>
+                                            <span className="lap-time">{formatLapTime(lap.total)}</span>
+                                            <span className="lap-delta">
+                                                +{formatLapTime(lap.lap)}
+                                            </span>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ───────────────────────────────────────────────
+        //  RENDER
+        // ───────────────────────────────────────────────
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+
+    <!-- ----------------------------------------------
+    NODE.JS BACKEND (Express) – included inline for reference
+    The server.js file is shown below in the explanation.
+    ---------------------------------------------- -->
+</body>
+</html>
